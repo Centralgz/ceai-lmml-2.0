@@ -1,0 +1,3 @@
+group,n_treatment,n_control,rate_treatment,rate_control,diff_treat_minus_ctrl
+far (> 109.0 km),1746,420,0.3144,0.3214,-0.007
+near (<= 109.0 km),144,1233,0.25,0.253,-0.003
