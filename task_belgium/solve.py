@@ -19,16 +19,25 @@ x = [2 * (float(r['long_side_m']) + 10000 * float(r['area_ha']) /
 y = [float(r['edge_m']) for r in rows]
 n = len(x)
 xbar, ybar = sum(x) / n, sum(y) / n
-slope = sum((a-xbar)*(b-ybar) for a, b in zip(x, y)) / sum((a-xbar)**2 for a in x)
-intercept = ybar - slope * xbar
-fitted = [intercept + slope * a for a in x]
+ditch = [float(r['ditch_m']) for r in rows]
+dbar = sum(ditch) / n
+sxx = sum((a-xbar)**2 for a in x)
+sdd = sum((a-dbar)**2 for a in ditch)
+sxd = sum((a-xbar)*(d-dbar) for a, d in zip(x, ditch))
+sxy = sum((a-xbar)*(b-ybar) for a, b in zip(x, y))
+sdy = sum((d-dbar)*(b-ybar) for d, b in zip(ditch, y))
+det = sxx*sdd - sxd*sxd
+slope = (sxy*sdd - sdy*sxd) / det
+ditch_slope = (sdy*sxx - sxy*sxd) / det
+intercept = ybar - slope*xbar - ditch_slope*dbar
+fitted = [intercept + slope*a + ditch_slope*d for a, d in zip(x, ditch)]
 residual = [b-p for b, p in zip(y, fitted)]
 r2 = 1 - sum(e*e for e in residual) / sum((b-ybar)**2 for b in y)
 rmse = math.sqrt(sum(e*e for e in residual) / n)
-summary = (f'n = {n}\nedge_m = {intercept:.9f} + {slope:.9f} * perimeter_m\n'
+summary = (f'n = {n}\nedge_m = {intercept:.9f} + {slope:.9f} * perimeter_m + {ditch_slope:.9f} * ditch_m\n'
            f'R2 = {r2:.9f}\nRMSE = {rmse:.6f} m\n'
-           'Read the residual-versus-perimeter plot: REGRESSION\n'
-           'Flag: SIGMOID_REGRESSION\n')
+           'Read the residual-versus-perimeter plot: SUPERVISION\n'
+           'Candidate flag (awaiting platform validation): SIGMOID_SUPERVISION\n')
 print(summary)
 (HERE / 'results.txt').write_text(summary)
 
@@ -42,8 +51,8 @@ def position(a, b):
 parts = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">',
          '<rect width="100%" height="100%" fill="white"/>',
          '<g font-family="Arial,sans-serif" fill="#17253c">',
-         '<text x="100" y="38" font-size="27">Fry-ndship: the measurements spell REGRESSION</text>',
-         f'<text x="100" y="73" font-size="18">OLS: measured edge ~ intercept + geometric perimeter | n = {n} | R² = {r2:.6f}</text>']
+         '<text x="100" y="38" font-size="27">Fry-ndship: the measurements spell SUPERVISION</text>',
+         f'<text x="100" y="73" font-size="18">OLS: edge ~ intercept + geometric perimeter + ditch | n = {n} | R² = {r2:.6f}</text>']
 for tick in range(300, 1200, 100):
     px, _ = position(tick, 0)
     parts += [f'<line x1="{px}" y1="{top}" x2="{px}" y2="{height-bottom}" stroke="#e6e9ef"/>',
@@ -70,8 +79,8 @@ else:
     im = Image.new('RGB', (width, height), 'white')
     draw = ImageDraw.Draw(im)
     font = ImageFont.load_default(size=22)
-    draw.text((left, 25), 'Fry-ndship: residuals reveal REGRESSION', fill='#17253c', font=font)
-    draw.text((left, 65), f'OLS edge ~ geometric perimeter | n={n} | R2={r2:.6f}', fill='#17253c', font=font)
+    draw.text((left, 25), 'Fry-ndship: residuals reveal SUPERVISION', fill='#17253c', font=font)
+    draw.text((left, 65), f'OLS edge ~ geometric perimeter + ditch | n={n} | R2={r2:.6f}', fill='#17253c', font=font)
     for a, b in zip(x, residual):
         px, py = position(a, b)
         draw.ellipse((px-1.5, py-1.5, px+1.5, py+1.5), fill='#173f80')

@@ -1,6 +1,6 @@
 n = 3869
-edge_m = -0.000441192 + 0.949999231 * perimeter_m
-R2 = 0.998367300
-RMSE = 9.765373 m
-Read the residual-versus-perimeter plot: REGRESSION
-Flag: SIGMOID_REGRESSION
+edge_m = -0.001045990 + 0.450010153 * perimeter_m + 0.999979689 * ditch_m
+R2 = 0.999984318
+RMSE = 0.957039 m
+Read the residual-versus-perimeter plot: SUPERVISION
+Candidate flag (awaiting platform validation): SIGMOID_SUPERVISION
